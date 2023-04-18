@@ -18,7 +18,6 @@ import java.util.*;
 import java.time.format.*;
 import java.time.LocalDateTime;
 
-
 public class ToyShopLottery01 {
     public static void main(String[] args) {
 
@@ -33,11 +32,11 @@ public class ToyShopLottery01 {
         Toy toy09 = new Toy("F9687I5678", "Мяч большой", 203,0, 0.0);
         Toy toy10 = new Toy("W9857P5736", "Мяч малый", 118,0, 0.0);
       
-        TreeMap<String,String> date_ID = new TreeMap<String,String>();
-        TreeMap<String,String> id_name = new TreeMap<String,String>();
-        TreeMap<String,Integer> id_freq = new TreeMap<String,Integer>();
-        completion_treemap(date_ID, id_name,id_freq );
-
+        TreeMap<String,String> date_ID = new TreeMap<String,String>(); //заполнение информациеу по дате-времени выигрыша(date),
+        TreeMap<String,String> id_name = new TreeMap<String,String>(); //ID игрушки (id), наименования игрушки(name),
+        TreeMap<String,Integer> id_freq = new TreeMap<String,Integer>();  // количество выигрышей по данной игрушке(freq)
+        completion_treemap(date_ID, id_name,id_freq ); // при запуске заполня.тся на основании файла очереди 
+                                                    //выиигрышей на выдачу  (file01.txt) и файла выданных выигрышей (file02.txt)
         ArrayList<Toy> listToys = new ArrayList<Toy>();
         listToys.add(toy01);
         listToys.add(toy02);
@@ -91,7 +90,7 @@ public class ToyShopLottery01 {
         iScanner.close();
     }
 
-    public static void viewing_DB(ArrayList<Toy> listT){
+    public static void viewing_DB(ArrayList<Toy> listT){    //просмотр базы данных(БД) игрушек
         int count = 0;
         for ( Toy el:listT){
             printString(count, el.getname(), el.getquantity(), el.getfrequency());
@@ -99,7 +98,7 @@ public class ToyShopLottery01 {
             }
         }   
         
-    public static void making_changes_DB(ArrayList<Toy> listToys, Scanner iSc,
+    public static void making_changes_DB(ArrayList<Toy> listToys, Scanner iSc, //внесение изменений в БД
                 TreeMap<String,String> id_name ){
         boolean fl = true;
         int number1 = 0;  
@@ -126,7 +125,7 @@ public class ToyShopLottery01 {
         }
         return;
     }
-
+    //проведение лотереи случайным образом с учетом длины БД
     public static void conducting_lottery(ArrayList<Toy> listT, TreeMap<String,String> date_ID,
                      TreeMap<String,String> id_name, String date_str){
         Random random = new Random();
@@ -135,26 +134,26 @@ public class ToyShopLottery01 {
         while (fl) {
             int numb_winner = random.nextInt(set_size); 
             Toy str_DB = listT.get(numb_winner);
-            int quantity = str_DB.getquantity();
-            if (quantity >= 10) {
-                quantity--;
+            int quantity = str_DB.getquantity();        
+            if (quantity >= 10) {                   //участвуют игрушки, если их кол-во в БД >= 10 шт.
+                quantity--;                         //уменьшение на 1 кол-ва в БД
                 str_DB.setquantity(quantity);
                 listT.set(numb_winner, str_DB); 
                 System.out.println("Выиграла игрушка:");
                 printString(numb_winner, str_DB.getname(), quantity, str_DB.getfrequency());
                 String id = str_DB.getID();
-                date_ID.put(date_str, id);
+                date_ID.put(date_str, id);          //внесение информации по новому выигрышу
                 String name = str_DB.getname();
                 if (!id_name.containsKey(id)){
                     id_name.put(id, name);
-                }   
+                }                               // внесение строки по выигрышу в очередь на выдачу в файл file01.txt
                 write_text_file(date_str, date_ID.get(date_str), id_name.get(date_ID.get(date_str)));
                 fl = false;
             }
         }
         return;
     }
-
+        // выдача выигрыша  (в произвольном порядке)
     public static void Payout_winnings(ArrayList<Toy> listT, TreeMap<String,String> date_ID,
                 TreeMap<String, String> id_name, Scanner iSc,TreeMap<String, Integer> id_freq ){
         boolean fl = true; 
@@ -184,8 +183,8 @@ public class ToyShopLottery01 {
             while(fl){
                 if (count > 1){
                     System.out.println("Укажите номер выдаваемого выигрыша:");
-                    index = iSc.nextLine();
-                    if ( index == ""){
+                    index = iSc.nextLine();         // иногда сканер не считывает, или что-то вроде того
+                    if ( index == ""){              // вынуждена подстраховаться таким странным повтором считывания
                         index = iSc.nextLine();
                     }
                 }
@@ -196,12 +195,12 @@ public class ToyShopLottery01 {
                         int i = 0;
                         while ((line = r1 .readLine()) != null) {
                             line = line + "\n";
-                            if ( i != number){
-                                bw1.write(line);
-                            } else {
+                            if ( i != number){                  //запись во временный файл (tmp) всех строк
+                                bw1.write(line);                //кроме выдаваего выигрыша; строка выигрыша 
+                            } else {                            //записывается в file02.txt
                                 bw2.write(line);
                                 String[] subLines = line.split(";");
-                                date_ID.remove(subLines[1]);
+                                date_ID.remove(subLines[1]);    //удаляется информация по выигрышу
                                 id = subLines[3];
                             }
                             i ++;
@@ -219,9 +218,9 @@ public class ToyShopLottery01 {
             r1.close();
 
             if (tmp.isFile()){
-                long size = tmp.length();
-                if(size != 0){
-                    frequency_calculation(listT, id, id_freq);
+                long size = tmp.length();                       
+                if(size != 0){                                  //удаляется file01.txt
+                    frequency_calculation(listT, id, id_freq);  //переименовывается tmp в file01.txt
                     file01.delete();
                     tmp.renameTo(file01);
                 }
@@ -230,7 +229,7 @@ public class ToyShopLottery01 {
         System.out.println("Ошибки при чтении/записи файла ");
         } 
     }  
-          
+       //добавляется кол-во по конкретной игрушке в БД   
     public static void add_number_DB(ArrayList<Toy> listT, Scanner iSc){
         String str_number = "";
         int num = 0;
@@ -238,7 +237,7 @@ public class ToyShopLottery01 {
         int add_number = 0;
         boolean fl = true;
         viewing_DB(listT);
-        num = find_string_index(listT, iSc);
+        num = find_string_index(listT, iSc);  //
         if (num == -1) { return; }
         while (fl){
             System.out.println("Укажите, какое количество выбранного товара добавить? :");
@@ -253,7 +252,7 @@ public class ToyShopLottery01 {
             } 
         }
     }
-
+    // добавляется новая номенклатура в БД ( ввод только в ЛАТИНИЦЕ)
     public static void add_new_product_DB(ArrayList<Toy> listT, Scanner iSc, 
             TreeMap<String,String> id_name){
         String str_name = "";
@@ -264,12 +263,12 @@ public class ToyShopLottery01 {
         viewing_DB(listT);
         while (fl){
             System.out.println("Укажите наименование нового товара(ЛАТИНИЦА) :");
-            str_name = iSc.nextLine();
+            str_name = iSc.nextLine();              //кирилица не считывается
             if (str_name == ""){
                 str_name = iSc.nextLine();
             }
             while (!fl_ID){
-                new_ID =  generating_random_String();
+                new_ID =  generating_random_String();  //генерируется ID игрушки
                 if (!id_name.containsKey(new_ID)){
                     fl_ID = true;
                 }
@@ -281,7 +280,7 @@ public class ToyShopLottery01 {
             str_name = iSc.nextLine();
             if (answer.contains(str_name)){
                 listT.add(new_toy);
-                sort_ArrayList(listT);
+                sort_ArrayList(listT);              //после ввода БД сортируется
                 id_name.put(new_ID, new_toy.getname());
                 return;
             } else {
@@ -294,7 +293,7 @@ public class ToyShopLottery01 {
         }
         return;
     }
-
+    // поиск строки в БД по индексу и вывод на экран
     public static int find_string_index(ArrayList<Toy> listT, Scanner iSc){
         String numb = "";
         int number1 = 0;
@@ -327,7 +326,7 @@ public class ToyShopLottery01 {
         }
         return -1;
     }
-           
+    //запись строки выигрыша в файл очереди на выдачу в file01.txt.
     public static void write_text_file(String date_now, String id, String name){
         try {
             File file = new File("file01.txt");
@@ -345,7 +344,7 @@ public class ToyShopLottery01 {
         } 
         return;
     }
-   
+    // расчет частоты выигрышей по каждой игрушке(% от количества выданных выигрышей)
     public static void frequency_calculation(ArrayList<Toy> listT, String id,TreeMap<String, Integer> id_freq){
         int count = 0;
         String ru;
@@ -365,8 +364,8 @@ public class ToyShopLottery01 {
                 count ++;
             }
             for ( Toy el:listT){
-                int frequency = 0;
-                boolean y_n = id_freq.containsKey(el.getID());
+                int frequency = 0;                                 //перерасчет частоты выигрышей
+                boolean y_n = id_freq.containsKey(el.getID());     //по всем игрушкам в БД
                 if (y_n){
                     frequency = id_freq.get(el.getID());
                     Double num =  frequency + 0.0;
@@ -380,7 +379,7 @@ public class ToyShopLottery01 {
         } 
         return;
     }
-
+    //сортировка БД
     public static void sort_ArrayList(ArrayList<Toy> listT){
         listT.sort(Comparator.comparing(Toy::getname).thenComparing(Toy::getID));
     }
@@ -419,7 +418,7 @@ public class ToyShopLottery01 {
         System.out.println(generatedString);
         return generatedString;
     }
-
+    // заполнение структур TreeMap на основаниии файлов file01.txt  и file02.txt
     public static void completion_treemap( TreeMap<String,String> date_ID,
                      TreeMap<String,String> id_name, TreeMap<String,Integer> id_freq){
         String ru;                
