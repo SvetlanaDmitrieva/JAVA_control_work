@@ -418,6 +418,7 @@ public class ToyShopLottery01 {
         System.out.println(generatedString);
         return generatedString;
     }
+    
     // заполнение структур TreeMap на основаниии файлов file01.txt  и file02.txt
     public static void completion_treemap( TreeMap<String,String> date_ID,
                      TreeMap<String,String> id_name, TreeMap<String,Integer> id_freq){
